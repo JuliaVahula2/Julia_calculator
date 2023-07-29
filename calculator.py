@@ -1,64 +1,130 @@
-import sys
-import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QHBoxLayout
 
+app = QApplication([])
 
-class WeatherApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Weather Check")
-        self.setMinimumSize(300, 300)
-        self.setup_ui()
+win_main = QWidget()
+win_main.setWindowTitle("Калькулятор")
+win_main.resize(800,800)
 
-    def setup_ui(self):
-        layout = QVBoxLayout()
+main_layout = QVBoxLayout()
+input_layout = QHBoxLayout()
+first_layout = QHBoxLayout()
+second_layout = QHBoxLayout()
+third_layout = QHBoxLayout()
+last_layout = QHBoxLayout()
 
-        self.city_input = QLineEdit()
-        self.city_input.setPlaceholderText("Введіть назву міста")
+num1 = QPushButton('1')
+num2 = QPushButton('2')
+num3 = QPushButton('3')
+num4 = QPushButton('4')
+num5 = QPushButton('5')
+num6 = QPushButton('6')
+num7 = QPushButton('7')
+num8 = QPushButton('8')
+num9 = QPushButton('9')
+num0 = QPushButton('0')
+add_btn = QPushButton('+')
+sub_btn = QPushButton('-')
+mul_btn = QPushButton('*')
+div_btn = QPushButton('/')
+equals_btn = QPushButton('=')
+clear_btn = QPushButton('C')
+backspace_btn = QPushButton('⌫')
 
-        self.weather_label = QLabel()
+input_numbers = QLineEdit('')
+input_numbers.setReadOnly(True)  # Make the input field read-only
 
-        self.weather_button = QPushButton("Перевірити погоду")
-        self.weather_button.clicked.connect(self.get_weather)
+input_layout.addWidget(input_numbers)
+first_layout.addWidget(num1)
+first_layout.addWidget(num2)
+first_layout.addWidget(num3)
+second_layout.addWidget(num4)
+second_layout.addWidget(num5)
+second_layout.addWidget(num6)
+third_layout.addWidget(num7)
+third_layout.addWidget(num8)
+third_layout.addWidget(num9)
+last_layout.addWidget(num0)
+last_layout.addWidget(add_btn)
+last_layout.addWidget(sub_btn)
+last_layout.addWidget(mul_btn)
+last_layout.addWidget(div_btn)
+last_layout.addWidget(equals_btn)
+last_layout.addWidget(clear_btn)
+last_layout.addWidget(backspace_btn)
 
-        layout.addSpacing(200)
-        layout.addWidget(self.city_input)
+main_layout.addLayout(input_layout)
+main_layout.addLayout(first_layout)
+main_layout.addLayout(second_layout)
+main_layout.addLayout(third_layout)
+main_layout.addLayout(last_layout)
 
-        layout.addWidget(self.weather_label)
-        layout.addWidget(self.weather_button)
+win_main.setLayout(main_layout)
+win_main.show()
 
-        # Завантажуємо зображення і встановлюємо як фон
-        pixmap = QPixmap("pogoda.jpg")
-        pixmap = pixmap.scaled(500, 500)  # Змінюємо розмір зображення на 500x500 пікселів
-        background_label = QLabel(self)
-        background_label.setPixmap(pixmap)
-        background_label.setScaledContents(True)  # Збільшуємо масштаб, щоб зображення заповнило фон
+current_operation = None
+current_result = None
 
-        # Розширюємо виджет QLabel до 500x500 пікселів
-        background_label.setFixedSize(350, 350)
+def handle_button_click():
+    global current_operation, current_result
+    button = app.sender()
+    text = button.text()
+    if text.isdigit():
+        input_numbers.setText(input_numbers.text() + text)
+    elif text in ['+', '-', '*', '/']:
+        if input_numbers.text():
+            current_operation = text
+            current_result = int(input_numbers.text())
+            input_numbers.setText('')
+    elif text == "=":
+        if current_operation and input_numbers.text():
+            second_number = int(input_numbers.text())
+            if current_operation == "+":
+                result = current_result + second_number
+            elif current_operation == "-":
+                result = current_result - second_number
+            elif current_operation == "*":
+                result = current_result * second_number
+            elif current_operation == "/":
+                if second_number != 0:
+                    result = current_result / second_number
+                else:
+                    result = "Error: Division by zero"
+            else:
+                result = 0
+            input_numbers.setText(str(result))
+            current_operation = None
+            current_result = result  # Save the current result for possible further calculations
 
-        self.setLayout(layout)
+def handle_clear():
+    global current_operation, current_result
+    current_operation = None
+    current_result = None
+    input_numbers.setText('')
 
-    def get_weather(self):
-        city = self.city_input.text()
-        api_key = "c836eecb19fcb7b4704e0073eced8527"  # Ваш API-ключ OpenWeatherMap
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+def handle_backspace():
+    text = input_numbers.text()
+    input_numbers.setText(text[:-1])
 
-        response = requests.get(url)
-        data = response.json()
+equals_btn.clicked.connect(handle_button_click)
 
-        if data["cod"] == 200:
-            temperature = data["main"]["temp"]
-            description = data["weather"][0]["description"]
+num1.clicked.connect(handle_button_click)
+num2.clicked.connect(handle_button_click)
+num3.clicked.connect(handle_button_click)
+num4.clicked.connect(handle_button_click)
+num5.clicked.connect(handle_button_click)
+num6.clicked.connect(handle_button_click)
+num7.clicked.connect(handle_button_click)
+num8.clicked.connect(handle_button_click)
+num9.clicked.connect(handle_button_click)
+num0.clicked.connect(handle_button_click)
 
-            self.weather_label.setText(f"Температура: {temperature}°C\nОпис: {description}")
-        else:
-            self.weather_label.setText("Не вдалося отримати погоду для даного міста.")
+add_btn.clicked.connect(handle_button_click)
+sub_btn.clicked.connect(handle_button_click)
+mul_btn.clicked.connect(handle_button_click)
+div_btn.clicked.connect(handle_button_click)
 
+clear_btn.clicked.connect(handle_clear)
+backspace_btn.clicked.connect(handle_backspace)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    weather_app = WeatherApp()
-    weather_app.show()
-    sys.exit(app.exec_())
+app.exec_()
